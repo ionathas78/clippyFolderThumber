@@ -11,66 +11,145 @@
             color: black;
         }
 
+        header {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            background-color: green; 
+            color: yellow;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin: 5px;
+        }
+
+        img {
+            max-width: 600px;
+        }
+
+        label {
+            font-size: 16px;
+        }
+
+        p {
+            font-size: 16px;
+            margin: 5px;
+        }
+
+        .controls-right {
+            float: right; 
+            margin-right: 50px;
+        }
+
+        .page {
+            margin: 0 25px 100px;
+        }
+
+        .spacer-span {
+            margin-left: 10px;
+        }
+
+        .thumb {
+            margin: 10px;
+            padding: 2.5px;
+            display: flex;
+            flex-flow: column wrap;
+            align-items: center;
+            border: solid 1px black;
+        }
+
+        #target-path {
+            max-width: 50%;
+        }
+
+        #thumb-gallery {
+            display: flex; 
+            flex-flow: row wrap; 
+            align-items: flex-start;
+        }
+
         @media only screen and (max-width: 600px) {
             img {
                 max-width: 320px;
+            }
+
+            input {
+                font-size: 12px; 
+                margin-left: 0;
+                margin-right: 2px;   
+            }
+
+            label {
+                font-size: 12px;
+            }
+
+            .controls-right {
+                margin-left: 0;
+                margin-right: 5px;
+            }
+
+            .spacer-span {
+                margin-left: 2px;
+            }
+        }
+
+        @media only print {
+            .no-print {
+                display: none;
             }
         }
     </style>
 </head>
 <body>
-    <header style="position: fixed; top: 0; left: 0; width: 100%; background-color: green; color: yellow;">
+    <header class="no-print">
         Clippy Folder Thumber
     </header>
-    <br>
-    <hr>
-    <section>
-        <!--
-        <input id="target-path" type="text" value="./" style="width: 75%;"/>
-        -->
+    <section class="no-print">
+        <br>
+        <hr>
         <input 
             id="target-path" 
             type="file" 
             accept="image/*"
             multiple 
         />
-        <!--
-            <button id="load-button">Load Files</button>
-        -->
-        <span style="float: right; margin-right: 50px;"> 
+        <span class="controls-right"> 
             <label for="size-100">100px</label>
             <input type="radio" id="size-100" name="img-size" value="100px" />
-            <span style="margin-left: 10px;"> </span>
+            <span class="spacer-span"> </span>
             <label for="size-150">150px</label>
             <input type="radio" id="size-150" name="img-size" value="150px" checked=true />
-            <span style="margin-left: 10px;"> </span>
+            <span class="spacer-span"> </span>
             <label for="size-250">250px</label>
             <input type="radio" id="size-250" name="img-size" value="250px" />
         </span>
+        <hr>
     </section>
-    <hr>
-    <div id="thumb-gallery" style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-start;">
+
+    <h1 id="gallery-title"></h1>
+
+    <div id="thumb-gallery">
         <!-- Thumbs go here -->
     </div>
 
     <script type="text/JavaScript">
-        // const _loadBtn = document.getElementById("load-button");
         const _targetFiles = document.getElementById("target-path");
         const _thumbGallery = document.getElementById("thumb-gallery");
+        const _galleryTitle = document.getElementById("gallery-title");
         const _sizeRadio = document.querySelectorAll("input[name='img-size']");
+        const _maxPageHeight = 600;
+        const _pageYMargin = 100;
         // console.log(_sizeRadio);
         var _thumbSize = "150px";
 
         function main() {
             let maxRadio = _sizeRadio.length;
-            /* _loadBtn.addEventListener("click", event => {
-                // console.log(_targetFiles.files);
-                processFiles(_targetFiles.files);
-            }) */
 
             _targetFiles.addEventListener("change", event => {
                 if (_targetFiles.value) {
-                    processFiles(_targetFiles.files);
+                    processFiles(_targetFiles.files, _galleryTitle);
                 }
             })
 
@@ -78,25 +157,55 @@
                 _sizeRadio[i].addEventListener("change", event => {
                     if (event.target.checked && (event.target.value !== _thumbSize)) {
                         _thumbSize = event.target.value;
-                        processFiles(_targetFiles.files);
+                        processFiles(_targetFiles.files, _galleryTitle);
                     }
                 })
             }
         }
 
-        function processFiles(fileArray) {
+        function processFiles(fileArray, titleTag) {
             let retVal = false;
 
+            let tagArray = [];
+            let maxTag = fileArray.length;
+            let tagIndex = 0;
+            let pageIndex = 0;
+
+            titleTag.textContent = maxTag.toString() + " images at " + _thumbSize;
+
             clearGallery();
-            let maxIndex = _targetFiles.files.length;
-            for (let i = 0; i < maxIndex; i++) {
-                let currentFile = _targetFiles.files[i];    
+            for (let i = 0; i < maxTag; i++) {
+                let currentFile = fileArray[i];    
                 let newImg = makeThumb(currentFile);
 
                 if (newImg) {
-                    _thumbGallery.appendChild(newImg);
+                    // _thumbGallery.appendChild(newImg);
+                    tagArray.push(newImg);
                 }
                 // console.log(_targetFiles.value, currentFile);
+            }
+
+            console.log(tagArray);
+            while (tagIndex < maxTag) {
+                let pageHeight = 0;
+                let newPage = document.createElement("article");
+                newPage.className = "page";
+                newPage.dataset.pageNumber = pageIndex + 1;
+
+                // console.log(tagArray[tagIndex].offsetHeight + _pageYMargin);
+                
+                pageHeight += tagArray[tagIndex].offsetHeight + _pageYMargin;
+                while ((pageHeight < _maxPageHeight) && (tagIndex < maxTag)) {
+                    newPage.appendChild(tagArray[tagIndex]);
+                    tagIndex += 1;
+
+                    if (tagIndex < maxTag) pageHeight += tagArray[tagIndex].offsetHeight + _pageYMargin;
+                    console.log(tagArray[tagIndex], tagArray[tagIndex].offsetHeight);
+                    console.log(pageHeight);
+                }
+
+                _thumbGallery.appendChild(newPage);
+                pageIndex += 1;
             }
 
             return retVal;
@@ -108,22 +217,17 @@
             let newImg = document.createElement("img");
             let newP = document.createElement("p");
 
-            newTag.style.margin = "10px";
-            newTag.style.padding = "2.5px";
-            newTag.style.display = "flex";
-            newTag.style.flexFlow = "column wrap";
-            newTag.style.alignItems = "center";
-            newTag.style.border = "solid 1px black";
+            newTag.className = "thumb";
 
             newLink.href = URL.createObjectURL(imageFile);
-            newLink.style.margin = "5px";
+            newLink.style.margin = "5px 5px 2px 5px";
 
             newImg.src = URL.createObjectURL(imageFile);
             newImg.title = imageFile.name;
             newImg.alt = imageFile.type;
             newImg.loading = "lazy";
             newImg.style.height = _thumbSize;
-            newImg.style.width = "auto";
+            // newImg.style.width = "auto";
 
             newP.textContent = imageFile.name;
 
