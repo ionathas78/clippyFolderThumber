@@ -4,6 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clippy Folder Thumber</title>
+
+    <style type="text/CSS">
+        * {
+            background-color: #eee;
+            color: black;
+        }
+
+        @media only screen and (max-width: 600px) {
+            img {
+                max-width: 320px;
+            }
+        }
+    </style>
 </head>
 <body>
     <header style="position: fixed; top: 0; left: 0; width: 100%; background-color: green; color: yellow;">
@@ -21,7 +34,19 @@
             accept="image/*"
             multiple 
         />
-        <button id="load-button">Load Files</button>
+        <!--
+            <button id="load-button">Load Files</button>
+        -->
+        <span style="float: right; margin-right: 50px;"> 
+            <label for="size-100">100px</label>
+            <input type="radio" id="size-100" name="img-size" value="100px" />
+            <span style="margin-left: 10px;"> </span>
+            <label for="size-150">150px</label>
+            <input type="radio" id="size-150" name="img-size" value="150px" checked=true />
+            <span style="margin-left: 10px;"> </span>
+            <label for="size-250">250px</label>
+            <input type="radio" id="size-250" name="img-size" value="250px" />
+        </span>
     </section>
     <hr>
     <div id="thumb-gallery" style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-start;">
@@ -29,16 +54,34 @@
     </div>
 
     <script type="text/JavaScript">
-        const _loadBtn = document.getElementById("load-button");
+        // const _loadBtn = document.getElementById("load-button");
         const _targetFiles = document.getElementById("target-path");
         const _thumbGallery = document.getElementById("thumb-gallery");
+        const _sizeRadio = document.querySelectorAll("input[name='img-size']");
+        // console.log(_sizeRadio);
+        var _thumbSize = "150px";
 
         function main() {
-            _loadBtn.addEventListener("click", event => {
+            let maxRadio = _sizeRadio.length;
+            /* _loadBtn.addEventListener("click", event => {
                 // console.log(_targetFiles.files);
                 processFiles(_targetFiles.files);
+            }) */
+
+            _targetFiles.addEventListener("change", event => {
+                if (_targetFiles.value) {
+                    processFiles(_targetFiles.files);
+                }
             })
 
+            for (let i = 0; i < maxRadio; i++) {
+                _sizeRadio[i].addEventListener("change", event => {
+                    if (event.target.checked && (event.target.value !== _thumbSize)) {
+                        _thumbSize = event.target.value;
+                        processFiles(_targetFiles.files);
+                    }
+                })
+            }
         }
 
         function processFiles(fileArray) {
@@ -60,17 +103,35 @@
         }
 
         function makeThumb(imageFile) {
+            let newTag = document.createElement("div");
+            let newLink = document.createElement("a");
             let newImg = document.createElement("img");
+            let newP = document.createElement("p");
+
+            newTag.style.margin = "10px";
+            newTag.style.padding = "2.5px";
+            newTag.style.display = "flex";
+            newTag.style.flexFlow = "column wrap";
+            newTag.style.alignItems = "center";
+            newTag.style.border = "solid 1px black";
+
+            newLink.href = URL.createObjectURL(imageFile);
+            newLink.style.margin = "5px";
 
             newImg.src = URL.createObjectURL(imageFile);
             newImg.title = imageFile.name;
             newImg.alt = imageFile.type;
             newImg.loading = "lazy";
-            newImg.style.height = "150px";
+            newImg.style.height = _thumbSize;
             newImg.style.width = "auto";
-            newImg.style.margin = "20px";
 
-            return newImg;
+            newP.textContent = imageFile.name;
+
+            newLink.appendChild(newImg);
+            newTag.appendChild(newLink);
+            newTag.appendChild(newP);
+
+            return newTag;
         }
 
         function clearGallery() {
