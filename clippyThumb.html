@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clippy Folder Thumber</title>
+</head>
+<body>
+    <header style="position: fixed; top: 0; left: 0; width: 100%; background-color: green; color: yellow;">
+        Clippy Folder Thumber
+    </header>
+    <br>
+    <hr>
+    <section>
+        <input id="target-path" type="text" value="./" style="width: 75%;"/>
+        <button id="load-button">Load Directory</button>
+    </section>
+    <hr>
+
+    <script type="text/JavaScript">
+        function main() {
+            var loadBtn = document.getElementById("load-button");
+            var targetPath = document.getElementById("target-path");
+
+            loadBtn.addEventHandler("click", {
+                processDirectory(targetPath.textContent);
+            })
+        }
+
+        function processDirectory(path) {
+            
+        }
+
+        main;
+    </script>
+</body>
+</html>
