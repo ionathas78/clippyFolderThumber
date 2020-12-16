@@ -12,26 +12,74 @@
     <br>
     <hr>
     <section>
+        <!--
         <input id="target-path" type="text" value="./" style="width: 75%;"/>
-        <button id="load-button">Load Directory</button>
+        -->
+        <input 
+            id="target-path" 
+            type="file" 
+            accept="image/*"
+            multiple 
+        />
+        <button id="load-button">Load Files</button>
     </section>
     <hr>
+    <div id="thumb-gallery" style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-start;">
+        <!-- Thumbs go here -->
+    </div>
 
     <script type="text/JavaScript">
+        const _loadBtn = document.getElementById("load-button");
+        const _targetFiles = document.getElementById("target-path");
+        const _thumbGallery = document.getElementById("thumb-gallery");
+
         function main() {
-            var loadBtn = document.getElementById("load-button");
-            var targetPath = document.getElementById("target-path");
-
-            loadBtn.addEventHandler("click", {
-                processDirectory(targetPath.textContent);
+            _loadBtn.addEventListener("click", event => {
+                // console.log(_targetFiles.files);
+                processFiles(_targetFiles.files);
             })
+
         }
 
-        function processDirectory(path) {
-            
+        function processFiles(fileArray) {
+            let retVal = false;
+
+            clearGallery();
+            let maxIndex = _targetFiles.files.length;
+            for (let i = 0; i < maxIndex; i++) {
+                let currentFile = _targetFiles.files[i];    
+                let newImg = makeThumb(currentFile);
+
+                if (newImg) {
+                    _thumbGallery.appendChild(newImg);
+                }
+                // console.log(_targetFiles.value, currentFile);
+            }
+
+            return retVal;
         }
 
-        main;
+        function makeThumb(imageFile) {
+            let newImg = document.createElement("img");
+
+            newImg.src = URL.createObjectURL(imageFile);
+            newImg.title = imageFile.name;
+            newImg.alt = imageFile.type;
+            newImg.loading = "lazy";
+            newImg.style.height = "150px";
+            newImg.style.width = "auto";
+            newImg.style.margin = "20px";
+
+            return newImg;
+        }
+
+        function clearGallery() {
+            while (_thumbGallery.hasChildNodes()) {
+                _thumbGallery.removeChild(_thumbGallery.lastChild);
+            }
+        }
+
+        main();
     </script>
 </body>
 </html>
