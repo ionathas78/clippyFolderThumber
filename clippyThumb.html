@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clippy Folder Thumber</title>
-
+    
     <style type="text/CSS">
         * {
             background-color: #eee;
@@ -18,6 +18,7 @@
             width: 100%; 
             background-color: green; 
             color: yellow;
+            text-align: center;
         }
 
         h1 {
@@ -44,7 +45,15 @@
         }
 
         .page {
-            margin: 0 25px 100px;
+            display: flex; 
+            flex-flow: row wrap; 
+            align-items: flex-start;
+            max-width: 600px;
+            margin: 0 25px;
+        }
+
+        .page-break {
+            display: none;
         }
 
         .spacer-span {
@@ -62,12 +71,6 @@
 
         #target-path {
             max-width: 50%;
-        }
-
-        #thumb-gallery {
-            display: flex; 
-            flex-flow: row wrap; 
-            align-items: flex-start;
         }
 
         @media only screen and (max-width: 600px) {
@@ -95,9 +98,23 @@
             }
         }
 
-        @media only print {
+        @media print {
+            h1 {
+                font-size: 20px;
+                margin: 0 5px;
+            }
+
             .no-print {
                 display: none;
+            }
+
+            .page-break {
+                display: block;
+                page-break-before: always;
+            }
+
+            #thumb-gallery {
+                float: none;
             }
         }
     </style>
@@ -134,14 +151,16 @@
         <!-- Thumbs go here -->
     </div>
 
+
     <script type="text/JavaScript">
         const _targetFiles = document.getElementById("target-path");
         const _thumbGallery = document.getElementById("thumb-gallery");
         const _galleryTitle = document.getElementById("gallery-title");
         const _sizeRadio = document.querySelectorAll("input[name='img-size']");
-        const _maxPageHeight = 600;
+        const _captionHeight = 150;
         const _pageYMargin = 100;
-        // console.log(_sizeRadio);
+        const _maxPageHeight = 1250;
+
         var _thumbSize = "150px";
 
         function main() {
@@ -170,6 +189,21 @@
             let maxTag = fileArray.length;
             let tagIndex = 0;
             let pageIndex = 0;
+            let pageColumns;
+
+            switch (_thumbSize) {
+                case "100px":
+                    pageColumns = 2;
+                    break;
+                case "150px":
+                    pageColumns = 2;
+                    break;
+                case "250px":
+                    pageColumns = 1;
+                    break;
+                default:
+                    pageColumns = 1;
+            }
 
             titleTag.textContent = maxTag.toString() + " images at " + _thumbSize;
 
@@ -179,29 +213,42 @@
                 let newImg = makeThumb(currentFile);
 
                 if (newImg) {
-                    // _thumbGallery.appendChild(newImg);
                     tagArray.push(newImg);
                 }
-                // console.log(_targetFiles.value, currentFile);
             }
 
             console.log(tagArray);
             while (tagIndex < maxTag) {
                 let pageHeight = 0;
                 let newPage = document.createElement("article");
+                let newBreak = document.createElement("div");
+                let newP = document.createElement("p");
                 newPage.className = "page";
                 newPage.dataset.pageNumber = pageIndex + 1;
+                newBreak.className = "page-break";
+                newP.textContent = maxTag.toString() + " images at " + _thumbSize;
 
-                // console.log(tagArray[tagIndex].offsetHeight + _pageYMargin);
-                
-                pageHeight += tagArray[tagIndex].offsetHeight + _pageYMargin;
-                while ((pageHeight < _maxPageHeight) && (tagIndex < maxTag)) {
+                if (pageIndex > 0) {
+                    newBreak.appendChild(newP);
+                    _thumbGallery.appendChild(newBreak);
+                }
+
+                pageHeight += parseInt(_thumbSize) + _captionHeight;
+                while ((pageHeight <= _maxPageHeight) && (tagIndex < maxTag)) {
                     newPage.appendChild(tagArray[tagIndex]);
-                    tagIndex += 1;
 
-                    if (tagIndex < maxTag) pageHeight += tagArray[tagIndex].offsetHeight + _pageYMargin;
-                    console.log(tagArray[tagIndex], tagArray[tagIndex].offsetHeight);
+                    console.log(tagIndex);
+                    if (!((tagIndex + 1) % pageColumns)) {
+                        pageHeight += parseInt(_thumbSize) + _captionHeight;
+                    }
+                    console.log(tagArray[tagIndex]);
                     console.log(pageHeight);
+
+                    tagIndex += 1;
+                }
+
+                if (tagIndex == maxTag) {
+                    newPage.style.marginBottom = "0";
                 }
 
                 _thumbGallery.appendChild(newPage);
@@ -227,7 +274,6 @@
             newImg.alt = imageFile.type;
             newImg.loading = "lazy";
             newImg.style.height = _thumbSize;
-            // newImg.style.width = "auto";
 
             newP.textContent = imageFile.name;
 
